@@ -6,12 +6,12 @@ sys.path.insert(1, 'aima-python')
 
 from search import *
 
-class ARARProblem(Problem):
+class ASARProblem(Problem):
 
     """ The problem of search the best scheduling options to increase company
     profit """
 
-    def __init__(self, initial, goal=None):
+    def __init__(self, initial=None, goal=None):
         """The constructor specifies the initial state, and possibly a goal
         state, if there is a unique goal. Your subclass's constructor can add
         other arguments."""
@@ -54,3 +54,7 @@ class ARARProblem(Problem):
         and related algorithms try to maximize this value."""
         raise NotImplementedError
 
+
+if __name__ == "__main__":
+    a = ASARProblem()
+    print(a)
