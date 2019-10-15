@@ -1,4 +1,4 @@
 [submodule "aima-python"]
-	path = aima-python
+	path = aima
 	url = https://github.com/aimacode/aima-python.git
 	shallow = true
