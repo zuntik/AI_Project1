@@ -49,11 +49,17 @@ class ASARProblem(Problem):
         and action. The default method costs 1 for every step in the path."""
         return c + 1
 
-    def value(self, state):
-        """For optimization problems, each state has a value. Hill-climbing
-        and related algorithms try to maximize this value."""
+    def heurisitc(n):
+        """Return the heuristic of node n"""
         raise NotImplementedError
 
+    def load(f):
+        """Loads a problem from a (opened) file object f"""
+        raise NotImplementedError
+
+    def save(f , s):
+        """saves a solution state s to a (opened) file object f"""
+        raise NotImplementedError
 
 if __name__ == "__main__":
     a = ASARProblem()
