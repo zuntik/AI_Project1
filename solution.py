@@ -10,13 +10,13 @@ class ASARProblem(Problem):
 
     """ The problem of search the best scheduling options to increase company
     profit """
+    
+    def __init__(self, filename=None):
+        """The constructor calls the load method for the specific filename"""
+        while filename is None or filename=='':
+            filename = input('filename: ')
+        self.load(open(filename,'r'))
 
-    def __init__(self, initial=None, goal=None):
-        """The constructor specifies the initial state, and possibly a goal
-        state, if there is a unique goal. Your subclass's constructor can add
-        other arguments."""
-        self.initial = initial
-        self.goal = goal
 
     def actions(self, state):
         """Return the actions that can be executed in the given
@@ -47,20 +47,56 @@ class ASARProblem(Problem):
         is such that the path doesn't matter, this function will only look at
         state2.  If the path does matter, it will consider c and maybe state1
         and action. The default method costs 1 for every step in the path."""
+
+        """ path will be the negative of the profit """
+
         return c + 1
 
-    def heurisitc(n):
+    def heurisitc(self, n):
         """Return the heuristic of node n"""
         raise NotImplementedError
 
-    def load(f):
+    def load(self, f):
         """Loads a problem from a (opened) file object f"""
-        raise NotImplementedError
 
-    def save(f , s):
+        ### Load the data
+
+
+        lines = f.read().splitlines()
+        A = [ l for l in lines if  l.find("A")==0 ]
+        P = [ l for l in lines if  l.find("P")==0 ]
+        L = [ l for l in lines if  l.find("L")==0 ]
+        C = [ l for l in lines if  l.find("C")==0 ]
+
+        # rolltimes is a dictionary which contains the rolltimes for each class
+        self.rolltimes = {s.split()[1]: int(s.split()[2]) for s in C }
+
+        # legs is a dictionary which conatins 
+        def Leg(s):
+            d = {
+                'from': s[1],
+                'to': s[2],
+                'duration': int(s[3]),
+            }
+            for i in range( 4, len(s), 2 ):
+                d[s[i]] = int(s[i+1])
+            return d
+        self.legs = [ Leg(s.split()) for s in L ]
+
+        print(self.rolltimes)
+        print(self.legs)
+
+        ### Now that the data is loaded we must define the initial states
+
+        #self.initial = 
+
+        # defining a goal state will not be necessary because there is more than
+        # one goal state
+
+
+    def save(self, f , s):
         """saves a solution state s to a (opened) file object f"""
         raise NotImplementedError
 
 if __name__ == "__main__":
-    a = ASARProblem()
-    print(a)
+    ASARProblem('./examples/simple1.txt')
