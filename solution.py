@@ -151,9 +151,19 @@ class ASARProblem(Problem):
 
     def save(self, f , s):
         """saves a solution state s to a (opened) file object f"""
-
-
-        # TODO Remember to convert back to hours and minutes
+        to_time = lambda t: ('0' if (len(str(t//60)) == 1) else '' )  + str(t//60) + str(t%60)
+        
+        profit = 0
+        for pn,p in s['planes']:
+            line = 'S ' + pn 
+            dep = self.airports[p['initial']]['open']
+            for l in p['legs']:
+                line +=  ' ' + l['from'] + ' ' + l['to'] + to_time(dep)
+                dep += l['duration'] + p['rolltime']
+                profit+=l[p['class']]
+            f.write(line)
+        
+        f.write('P ' + str(float(profit)))
 
 
 if __name__ == "__main__":
