@@ -25,7 +25,7 @@ class ASARProblem(Problem):
             return string.__hash__()
 
         def __str__(self):
-            return "State:\n\t" + str(self.legs) + '\n\t' + str(self.planes)
+            return "State:\n" + str(self.legs) + '\n' + str(self.planes)
 
     
     def __init__(self, filename=None):
@@ -83,6 +83,8 @@ class ASARProblem(Problem):
         # TODO: make sure this is deep  equals!!!!!!
         legs.remove(action['leg'])
 
+        return state
+
     def goal_test(self, state):
         """Return True if the state is a goal. """
         # if there are no more legs to atribute and all of the aples
@@ -101,7 +103,6 @@ class ASARProblem(Problem):
 
     def heurisitc(self, n):
         """Return the heuristic of node n"""
-        print(n)
         return - sum( min( l[k] for k in self.classes ) for l in n.state.legs)
 
     h = heurisitc
@@ -135,9 +136,6 @@ class ASARProblem(Problem):
             return l
         legs = [ Leg(s) for s in L ]
 
-        print(classes)
-        print(legs)
-
         def Plane(s, c):
             return {
                 'class': s[2],
@@ -152,15 +150,10 @@ class ASARProblem(Problem):
         self.airports = { s.split()[1]: \
             {'open':to_minutes(int(s.split()[2])),'close':to_minutes(int(s.split()[3]))} for s in A}
 
-        print()
-        print(self.airports)
-
         initial_state = ASARProblem.State(\
             legs,\
             {p.split()[1]: Plane(p.split(),classes[p.split()[2]]) for p in P})
 
-        print()
-        print(initial_state)
 
         ### Now that the data is loaded we must define the initial states
 
@@ -196,6 +189,8 @@ class ASARProblem(Problem):
 
 if __name__ == "__main__":
     problem = ASARProblem('./examples/simple1.txt')
+
+    new_state = problem.result(problem.initial,problem.actions(problem.initial)[3])
 
     out = open('examples/simple1_solved.txt','w')
     
