@@ -11,6 +11,22 @@ class ASARProblem(Problem):
 
     """ The problem of search the best scheduling options to increase company
     profit """
+
+    class State:
+        def __init__(self,legs,planes):
+            self.legs = legs
+            self.planes = planes
+
+        def __hash__(self):
+            string = ''.join( str(leg['hash']) for leg in self.legs )
+            string = string.join( str(leg['hash']) \
+                    for plane in self.planes.values() \
+                    for leg in plane['legs'] )
+            return string.__hash__()
+
+        def __str__(self):
+            return "State:\n\t" + str(self.legs) + '\n\t' + str(self.planes)
+
     
     def __init__(self, filename=None):
         """The constructor calls the load method for the specific filename"""
@@ -30,13 +46,13 @@ class ASARProblem(Problem):
     
         actions = list()
 
-        for pname,p in state['planes'].items():
+        for pname,p in state.planes.items():
             # pname is the name of the current name
 
             if p['current'] is None:
-                actions = actions + [{'name':pname,'leg':leg} for leg in state['legs'] if self.airports[leg['from']]['open'] + leg['duration'] < self.airports[leg['to']]['close']]
+                actions = actions + [{'name':pname,'leg':leg} for leg in state.legs if self.airports[leg['from']]['open'] + leg['duration'] < self.airports[leg['to']]['close']]
             else:
-                for leg in state['legs']:
+                for leg in state.legs:
                     if leg['from'] == p['current'] and p['ready'] + leg['duration'] < self.airports[leg['to']]['close']:
                         actions.append({'name':pname,'leg':leg})
         
@@ -50,14 +66,15 @@ class ASARProblem(Problem):
 
         # the values are stored in the correct order
         state = deepcopy(state)
-        planes,legs,profit = state.values()
+        planes = state.planes
+        legs = state.legs
         
         # the action changes one of the planes
         plane = planes[action['name']]
     
-        if p['current'] is None:
-            p['initial'] = action['leg']['from']
-            p['ready'] = action['leg']['open']
+        if plane['current'] is None:
+            plane['initial'] = action['leg']['from']
+            plane['ready'] = self.airports[action['leg']['from']]['open']
 
         plane['legs'].append(action['leg'])
         plane['current'] = action['leg']['to']
@@ -69,7 +86,7 @@ class ASARProblem(Problem):
     def goal_test(self, state):
         """Return True if the state is a goal. """
         # if there are no more legs to atribute and all of the aples
-        return (not state['legs']) and all( p['inital']==p['current'] for p in state['planes'].values())
+        return (not state.legs) and all( p['inital']==p['current'] for p in state.planes.values())
 
     def path_cost(self, c, state1, action, state2):
         """Return the cost of a solution path that arrives at state2 from
@@ -80,11 +97,12 @@ class ASARProblem(Problem):
 
         """path will be the negative of the profit"""
 
-        return c - action['leg'][state1['planes'][action['name']]['class']]
+        return c - action['leg'][state1.planes[action['name']]['class']]
 
     def heurisitc(self, n):
         """Return the heuristic of node n"""
-        return - sum( min( l[k] for k in self.classes ) for l in n.state['legs'])
+        print(n)
+        return - sum( min( l[k] for k in self.classes ) for l in n.state.legs)
 
     h = heurisitc
 
@@ -104,15 +122,18 @@ class ASARProblem(Problem):
 
         # legs is a dictionary which conatins 
         def Leg(s):
+            hashh=s.__hash__()
+            s = s.split()
             l = {
                 'from': s[1],
                 'to': s[2],
                 'duration': int(s[3]),
+                'hash': hashh
             }
             for i in range( 4, len(s), 2 ):
                 l[s[i]] = int(s[i+1])
             return l
-        legs = [ Leg(s.split()) for s in L ]
+        legs = [ Leg(s) for s in L ]
 
         print(classes)
         print(legs)
@@ -134,11 +155,11 @@ class ASARProblem(Problem):
         print()
         print(self.airports)
 
-        initial_state = {
-            'legs': legs,
-            'planes': {p.split()[1]: Plane(p.split(),classes[p.split()[2]]) for p in P }
-        }
+        initial_state = ASARProblem.State(\
+            legs,\
+            {p.split()[1]: Plane(p.split(),classes[p.split()[2]]) for p in P})
 
+        print()
         print(initial_state)
 
         ### Now that the data is loaded we must define the initial states
@@ -161,7 +182,7 @@ class ASARProblem(Problem):
         to_time = lambda t: ('0' if (len(str(t//60)) == 1) else '' )  + str(t//60) + str(t%60)
         
         profit = 0
-        for pn,p in s['planes']:
+        for pn,p in s.planes:
             line = 'S ' + pn 
             dep = self.airports[p['initial']]['open']
             for l in p['legs']:
