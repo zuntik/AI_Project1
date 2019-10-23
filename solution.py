@@ -1,7 +1,7 @@
 
 # Following 2 lines necessary if aima code not in same dir
 import sys
-sys.path.insert(1, 'aima-python')
+sys.path.append('./aima-python/')
 
 from search import *
 
@@ -86,6 +86,8 @@ class ASARProblem(Problem):
         """Return the heuristic of node n"""
         return - sum( min( l[k] for k in self.classes ) for l in n.state['legs'])
 
+    h = heurisitc
+
     def load(self, f):
         """Loads a problem from a (opened) file object f"""
 
@@ -151,6 +153,11 @@ class ASARProblem(Problem):
 
     def save(self, f , s):
         """saves a solution state s to a (opened) file object f"""
+        
+        if s is None:
+            f.write('Infeasible')
+            return
+
         to_time = lambda t: ('0' if (len(str(t//60)) == 1) else '' )  + str(t//60) + str(t%60)
         
         profit = 0
@@ -167,4 +174,8 @@ class ASARProblem(Problem):
 
 
 if __name__ == "__main__":
-    ASARProblem('./examples/simple1.txt')
+    problem = ASARProblem('./examples/simple1.txt')
+
+    out = open('examples/simple1_solved.txt','w')
+    
+    problem.save(out,astar_search(problem,None))
