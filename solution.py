@@ -107,10 +107,11 @@ class ASARProblem(Problem):
 
     def heurisitc(self, n):
         """Return the heuristic of node n"""
-        return - sum( min( l[k] for k in self.classes ) for l in n.state.legs)
+        return - min( [min( l[k] for k in self.classes ) for l in n.state.legs] if [min( l[k] for k in self.classes ) for l in n.state.legs]!=[] else [0] ) * len(n.state.legs)
 
-    def h(self,n):
-        return 0
+    h = heurisitc
+#    def h(self,n):
+#        return 0
 
     def load(self, f):
         """Loads a problem from a (opened) file object f"""
