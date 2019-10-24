@@ -22,10 +22,13 @@ class ASARProblem(Problem):
             string = string.join( str(leg['hash']) \
                     for plane in self.planes.values() \
                     for leg in plane['legs'] )
-            return string.__hash__()
+            return hash(string)
 
         def __str__(self):
             return "State:\n" + str(self.legs) + '\n' + str(self.planes)
+
+        def __lt__(self,a):
+            return True
 
     
     def __init__(self, filename=None):
@@ -65,7 +68,8 @@ class ASARProblem(Problem):
         self.actions(state)."""
 
         # the values are stored in the correct order
-        state = deepcopy(state)
+        #state = deepcopy(state)
+        state = ASARProblem.State(deepcopy(state.legs),deepcopy(state.planes))
         planes = state.planes
         legs = state.legs
         
@@ -88,7 +92,7 @@ class ASARProblem(Problem):
     def goal_test(self, state):
         """Return True if the state is a goal. """
         # if there are no more legs to atribute and all of the aples
-        return (not state.legs) and all( p['inital']==p['current'] for p in state.planes.values())
+        return (not state.legs) and all( p['initial']==p['current'] for p in state.planes.values())
 
     def path_cost(self, c, state1, action, state2):
         """Return the cost of a solution path that arrives at state2 from
@@ -105,7 +109,8 @@ class ASARProblem(Problem):
         """Return the heuristic of node n"""
         return - sum( min( l[k] for k in self.classes ) for l in n.state.legs)
 
-    h = heurisitc
+    def h(self,n):
+        return 0
 
     def load(self, f):
         """Loads a problem from a (opened) file object f"""
@@ -140,7 +145,7 @@ class ASARProblem(Problem):
             return {
                 'class': s[2],
                 'rolltime':c,
-                'inital': None,
+                'initial': None,
                 'current': None,
                 'ready': 0,
                 'legs': list()
@@ -169,29 +174,27 @@ class ASARProblem(Problem):
         """saves a solution state s to a (opened) file object f"""
         
         if s is None:
-            f.write('Infeasible')
+            f.write('Infeasible\n')
             return
 
-        to_time = lambda t: ('0' if (len(str(t//60)) == 1) else '' )  + str(t//60) + str(t%60)
+        to_time = lambda t: ('0' if (len(str(t//60)) == 1) else '' )\
+                + str(t//60) + str(t%60) + ('0' if (len(str(t%60)) == 1) else '' )
         
         profit = 0
-        for pn,p in s.planes:
+        for pn,p in s.state.planes.items():
             line = 'S ' + pn 
             dep = self.airports[p['initial']]['open']
             for l in p['legs']:
-                line +=  ' ' + l['from'] + ' ' + l['to'] + to_time(dep)
+                line += ' ' + to_time(dep)  +  ' ' + l['from'] + ' ' + l['to']
                 dep += l['duration'] + p['rolltime']
                 profit+=l[p['class']]
-            f.write(line)
+            f.write(line + '\n')
         
-        f.write('P ' + str(float(profit)))
+        f.write('P ' + str(float(profit))+'\n')
 
 
 if __name__ == "__main__":
     problem = ASARProblem('./examples/simple1.txt')
 
     new_state = problem.result(problem.initial,problem.actions(problem.initial)[3])
-
-    out = open('examples/simple1_solved.txt','w')
-    
-    problem.save(out,astar_search(problem,None))
+    problem.save(open('examples/simple1_solved.txt','w'),astar_search(problem,None))
