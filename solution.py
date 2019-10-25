@@ -56,7 +56,7 @@ class ASARProblem(Problem):
                 actions = actions + [{'name':pname,'leg':leg} for leg in state.legs if self.airports[leg['from']]['open'] + leg['duration'] < self.airports[leg['to']]['close']]
             else:
                 for leg in state.legs:
-                    if leg['from'] == p['current'] and p['ready'] + leg['duration'] < self.airports[leg['to']]['close']:
+                    if leg['from'] == p['current'] and p['ready'] + leg['duration'] < self.airports[leg['to']]['close'] and p['ready'] + leg['duration'] > self.airports[leg['to']]['open']:
                         actions.append({'name':pname,'leg':leg})
         
         return actions
@@ -182,7 +182,7 @@ class ASARProblem(Problem):
                 + str(t//60) + str(t%60) + ('0' if (len(str(t%60)) == 1) else '' )
         
         profit = 0
-        for pn,p in s.state.planes.items():
+        for pn,p in s.planes.items():
             line = 'S ' + pn 
             dep = self.airports[p['initial']]['open']
             for l in p['legs']:
@@ -196,6 +196,4 @@ class ASARProblem(Problem):
 
 if __name__ == "__main__":
     problem = ASARProblem('./examples/simple1.txt')
-
-    new_state = problem.result(problem.initial,problem.actions(problem.initial)[3])
-    problem.save(open('examples/simple1_solved.txt','w'),astar_search(problem,None))
+    problem.save(open('examples/simple1_solved.txt','w'),astar_search(problem,None).state)
