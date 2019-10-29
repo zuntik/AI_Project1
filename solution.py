@@ -1,5 +1,6 @@
 
 # Following 2 lines necessary if aima code not in same dir
+# TODO change this
 import sys
 sys.path.append('./aima-python/')
 
@@ -17,19 +18,14 @@ class ASARProblem(Problem):
             self.legs = legs
             self.planes = planes
 
-        #TODO Implemente __eq__()
         def __eq__(self, obj):
-            pass
+            return self.legs == obj.legs && self.planes == obj.planes
 
         def __hash__(self):
             string = ''.join( str(leg['hash']) for leg in self.legs )
             string = string.join( str(leg['hash']) \
-                    for plane in self.planes.values() \
-                    for leg in plane['legs'] )
+                for plane in self.planes.values() for leg in plane['legs'] )
             return hash(string)
-
-        def __str__(self):
-            return "State:\n" + str(self.legs) + '\n' + str(self.planes)
 
         def __lt__(self,a):
             return True
@@ -42,15 +38,10 @@ class ASARProblem(Problem):
         self.load(open(filename,'r'))
 
 
-    # TODO change this to implement actions as generator
     def actions(self, state):
-        """Return the actions that can be executed in the given
-        state. The result would typically be a list, but if there are
-        many actions, consider yielding them one at a time in an
-        iterator, rather than building them all at once."""
+        """Return the actions that can be executed in the given state."""
         
-        """ an action is a (plane,leg) touple"""
-    
+        # TODO Yielder!
         actions = list()
 
         for pname,p in state.planes.items():
@@ -67,9 +58,8 @@ class ASARProblem(Problem):
 
 
     def result(self, state, action):
-        """Return the state that results from executing the given
-        action in the given state. The action must be one of
-        self.actions(state)."""
+        """Return the state that results from executing the given action in the
+        given state. The action must be one of self.actions(state)."""
 
         # the values are stored in the correct order
         #state = deepcopy(state)
@@ -88,23 +78,20 @@ class ASARProblem(Problem):
         plane['current'] = action['leg']['to']
         plane['ready'] = plane['ready'] + action['leg']['duration'] + plane['rolltime']
 
-        # TODO: make sure this is deep  equals!!!!!!
         legs.remove(action['leg'])
 
         return state
 
     def goal_test(self, state):
         """Return True if the state is a goal. """
-        # if there are no more legs to atribute and all of the aples
+        # if there are no more legs to atribute and all of the planes are
+        # currently where they started
         return (not state.legs) and all( p['initial']==p['current'] for p in state.planes.values())
 
     def path_cost(self, c, state1, action, state2):
         """Return the cost of a solution path that arrives at state2 from
-        state1 via action, assuming cost c to get up to state1. If the problem
-        is such that the path doesn't matter, this function will only look at
-        state2.  If the path does matter, it will consider c and maybe state1
-        and action. The default method costs 1 for every step in the path."""
-
+        state1 via action, assuming cost c to get up to state1."""
+        # the step cost is the difference between the ideal profit and the actual profit
         return c + max( [ action['leg'][c] for c in self.classes ] ) - action['leg'][state1.planes[action['name']]['class']]
 
     def heurisitc(self, n):
@@ -160,7 +147,6 @@ class ASARProblem(Problem):
             legs,\
             {p.split()[1]: Plane(p.split(),classes[p.split()[2]]) for p in P})
 
-
         ### Now that the data is loaded we must define the initial states
 
         self.initial =  initial_state
@@ -179,7 +165,7 @@ class ASARProblem(Problem):
             return
 
         to_time = lambda t: ('0' if (len(str(t//60)) == 1) else '' )\
-                + str(t//60) + str(t%60) + ('0' if (len(str(t%60)) == 1) else '' )
+                + str(t//60) + str(t%60) + ('0' if (len(str(t%60))==1) else '')
         
         profit = 0
         for pn,p in s.planes.items():
