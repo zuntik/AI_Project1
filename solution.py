@@ -17,6 +17,10 @@ class ASARProblem(Problem):
             self.legs = legs
             self.planes = planes
 
+        #TODO Implemente __eq__()
+        def __eq__(self, obj):
+            pass
+
         def __hash__(self):
             string = ''.join( str(leg['hash']) for leg in self.legs )
             string = string.join( str(leg['hash']) \
@@ -33,8 +37,8 @@ class ASARProblem(Problem):
     
     def __init__(self, filename=None):
         """The constructor calls the load method for the specific filename"""
-        while filename is None or filename=='':
-            filename = input('filename: ')
+        if filename is None:
+            return
         self.load(open(filename,'r'))
 
 
@@ -101,17 +105,13 @@ class ASARProblem(Problem):
         state2.  If the path does matter, it will consider c and maybe state1
         and action. The default method costs 1 for every step in the path."""
 
-        """path will be the negative of the profit"""
-
-        return c - action['leg'][state1.planes[action['name']]['class']]
+        return c + max( [ action['leg'][c] for c in self.classes ] ) - action['leg'][state1.planes[action['name']]['class']]
 
     def heurisitc(self, n):
         """Return the heuristic of node n"""
-        return - min( [min( l[k] for k in self.classes ) for l in n.state.legs] if [min( l[k] for k in self.classes ) for l in n.state.legs]!=[] else [0] ) * len(n.state.legs)
+        return 0
 
     h = heurisitc
-#    def h(self,n):
-#        return 0
 
     def load(self, f):
         """Loads a problem from a (opened) file object f"""
@@ -184,6 +184,9 @@ class ASARProblem(Problem):
         profit = 0
         for pn,p in s.planes.items():
             line = 'S ' + pn 
+            if p['initial'] is None:
+                continue
+            
             dep = self.airports[p['initial']]['open']
             for l in p['legs']:
                 line += ' ' + to_time(dep)  +  ' ' + l['from'] + ' ' + l['to']
@@ -195,5 +198,15 @@ class ASARProblem(Problem):
 
 
 if __name__ == "__main__":
-    problem = ASARProblem('./examples/simple1.txt')
-    problem.save(open('examples/simple1_solved.txt','w'),astar_search(problem,None).state)
+
+    fp_in = open('examples/simple8.txt','r')
+    fp_out = open('examples/simple8_solved.txt','w')
+
+    problem = ASARProblem()
+    problem.load(fp_in)
+    final_node = astar_search(problem,None)
+
+    if final_node is None:
+        problem.save(fp_out, None)
+    else:
+        problem.save(fp_out, final_node.state)
