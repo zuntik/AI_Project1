@@ -48,10 +48,11 @@ class ASARProblem(Problem):
             # pname is the name of the current name
 
             if p['current'] is None:
-                actions = actions + [{'name':pname,'leg':leg} for leg in state.legs if self.airports[leg['from']]['open'] + leg['duration'] < self.airports[leg['to']]['close']]
+                actions += [{'name':pname,'leg':leg} for leg in state.legs if self.airports[leg['from']]['open'] + leg['duration'] <= self.airports[leg['to']]['close']]
             else:
                 for leg in state.legs:
-                    if leg['from'] == p['current'] and p['ready'] + leg['duration'] < self.airports[leg['to']]['close'] and p['ready'] + leg['duration'] > self.airports[leg['to']]['open']:
+                    if leg['from'] == p['current'] and p['ready'] + leg['duration'] <= self.airports[leg['to']]['close']:
+                        # TODO planes can start after tready
                         actions.append({'name':pname,'leg':leg})
         
         return actions
@@ -76,7 +77,7 @@ class ASARProblem(Problem):
 
         plane['legs'].append(action['leg'])
         plane['current'] = action['leg']['to']
-        plane['ready'] = plane['ready'] + action['leg']['duration'] + plane['rolltime']
+        plane['ready'] += action['leg']['duration'] + plane['rolltime']
 
         legs.remove(action['leg'])
 
@@ -111,17 +112,20 @@ class ASARProblem(Problem):
         L = [ l for l in lines if  l.find("L")==0 ]
         C = [ l for l in lines if  l.find("C")==0 ]
 
+        to_minutes = lambda x: (x//100)*60 + x%100
+
         # rolltimes is a dictionary which contains the classes for each class
-        classes = {s.split()[1]: int(s.split()[2]) for s in C }
+        classes = {s.split()[1]: to_minutes(int(s.split()[2])) for s in C }
 
         # legs is a dictionary which conatins 
         def Leg(s):
+            to_minutes = lambda x: (x//100)*60 + x%100
             hashh=s.__hash__()
             s = s.split()
             l = {
                 'from': s[1],
                 'to': s[2],
-                'duration': int(s[3]),
+                'duration': to_minutes(int(s[3])),
                 'hash': hashh
             }
             for i in range( 4, len(s), 2 ):
@@ -139,7 +143,6 @@ class ASARProblem(Problem):
                 'legs': list()
             }
 
-        to_minutes = lambda x: (x//100)*60 + x%100
         self.airports = { s.split()[1]: \
             {'open':to_minutes(int(s.split()[2])),'close':to_minutes(int(s.split()[3]))} for s in A}
 
@@ -185,8 +188,8 @@ class ASARProblem(Problem):
 
 if __name__ == "__main__":
 
-    fp_in = open('examples/simple7.txt','r')
-    fp_out = open('examples/simple7_solved.txt','w')
+    fp_in = open('examples/simple5.txt','r')
+    fp_out = open('examples/simple5_solved.txt','w')
 
     problem = ASARProblem()
     problem.load(fp_in)
