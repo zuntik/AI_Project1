@@ -19,7 +19,7 @@ class ASARProblem(Problem):
             self.planes = planes
 
         def __eq__(self, obj):
-            return self.legs == obj.legs && self.planes == obj.planes
+            return self.legs == obj.legs and self.planes == obj.planes
 
         def __hash__(self):
             string = ''.join( str(leg['hash']) for leg in self.legs )
@@ -185,8 +185,8 @@ class ASARProblem(Problem):
 
 if __name__ == "__main__":
 
-    fp_in = open('examples/simple8.txt','r')
-    fp_out = open('examples/simple8_solved.txt','w')
+    fp_in = open('examples/simple7.txt','r')
+    fp_out = open('examples/simple7_solved.txt','w')
 
     problem = ASARProblem()
     problem.load(fp_in)
