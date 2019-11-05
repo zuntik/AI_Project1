@@ -5,7 +5,7 @@ if __name__ == "__main__":
 
 from search import *
 
-from copy import deepcopy,copy
+from copy import deepcopy
 
 class ASARProblem(Problem):
 
@@ -47,12 +47,11 @@ class ASARProblem(Problem):
             # pname is the name of the current name
 
             if p['current'] is None:
-                actions += [{'name':pname,'leg':leg} for leg in state.legs if self.airports[leg['from']]['open'] + leg['duration'] <= self.airports[leg['to']]['close']]
+                actions += [{'name':pname,'leg':deepcopy(leg)} for leg in state.legs]
             else:
                 for leg in state.legs:
                     if leg['from'] == p['current'] and p['ready'] + leg['duration'] <= self.airports[leg['to']]['close']:
-                        # TODO planes can start after tready
-                        actions.append({'name':pname,'leg':leg})
+                        actions.append({'name':pname,'leg':deepcopy(leg)})
         
         return actions
 
@@ -62,30 +61,32 @@ class ASARProblem(Problem):
         given state. The action must be one of self.actions(state)."""
 
         # the values are stored in the correct order
-        #state = deepcopy(state)
         state = ASARProblem.State(deepcopy(state.legs),deepcopy(state.planes))
         planes = state.planes
         legs = state.legs
-        
+
+        # leg is the leg to atribute
+        leg = deepcopy(action['leg'])
+        legs.remove(action['leg'])
+
         # the action changes one of the planes
         plane = planes[action['name']]
     
         if plane['current'] is None:
-            plane['initial'] = action['leg']['from']
-            plane['ready'] = self.airports[action['leg']['from']]['open']
+            plane['initial'] = leg['from']
+            plane['ready'] = self.airports[leg['from']]['open']
 
-        leg = action['leg']
-        legs.remove(leg)
+        if plane['ready'] + leg['duration'] < self.airports[leg['to']]['open']:
+            plane['ready'] = self.airports[leg['to']]['open'] - leg['duration']
 
-        if plane['ready'] + action['leg']['duration'] < self.airports[action['leg']['to']]['open']:
-            leg['dep'] = self.airports[action['leg']['to']]['open'] - action['leg']['duration']
-        else:
-            leg['dep'] = plane['ready']
+        
+        leg['dep'] = plane['ready']
 
-        plane['current'] = action['leg']['to']
-        plane['ready'] = leg['dep'] + action['leg']['duration'] + plane['rolltime']
+        plane['current'] = leg['to']
 
         plane['legs'].append(leg)
+
+        plane['ready'] = leg['dep'] + leg['duration'] + plane['rolltime']
 
         return state
 
@@ -132,6 +133,7 @@ class ASARProblem(Problem):
                 'from': s[1],
                 'to': s[2],
                 'duration': to_minutes(int(s[3])),
+                'dep': None,
                 'hash': hashh
             }
             for i in range( 4, len(s), 2 ):
@@ -173,8 +175,8 @@ class ASARProblem(Problem):
             f.write('Infeasible\n')
             return
 
-        to_time = lambda t: ('0' if (len(str(t//60)) == 1) else '' )\
-                + str(t//60) + str(t%60) + ('0' if (len(str(t%60))==1) else '')
+        to_time = lambda t: ( '0' + str(t//60)  if t//60<10 else str(t//60) )\
+                    + ( '0' + str(t%60)  if t%60<10 else str(t%60) )
         
         profit = 0
         for pn,p in s.planes.items():
@@ -192,7 +194,7 @@ class ASARProblem(Problem):
 
 if __name__ == "__main__":
 
-    for i in range(1,9):
+    for i in range(8,9):
 
         try:
             os.remove('examples/simple'+str(i)+'_solved.txt')
