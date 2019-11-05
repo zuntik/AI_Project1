@@ -95,11 +95,11 @@ class ASARProblem(Problem):
         # the step cost is the difference between the ideal profit and the actual profit
         return c + max( [ action['leg'][c] for c in self.classes ] ) - action['leg'][state1.planes[action['name']]['class']]
 
-    def heurisitc(self, n):
+    def heuristic(self, n):
         """Return the heuristic of node n"""
         return 0
 
-    h = heurisitc
+    h = heuristic
 
     def load(self, f):
         """Loads a problem from a (opened) file object f"""
@@ -188,12 +188,12 @@ class ASARProblem(Problem):
 
 if __name__ == "__main__":
 
-    fp_in = open('examples/simple5.txt','r')
-    fp_out = open('examples/simple5_solved.txt','w')
+    fp_in = open('examples/simple8.txt','r')
+    fp_out = open('examples/simple8_solved.txt','w')
 
     problem = ASARProblem()
     problem.load(fp_in)
-    final_node = astar_search(problem,None)
+    final_node = astar_search(problem,problem.heuristic)
 
     if final_node is None:
         problem.save(fp_out, None)
