@@ -1,8 +1,7 @@
-
-# Following 2 lines necessary if aima code not in same dir
-# TODO change this
-import sys
-sys.path.append('./aima-python/')
+if __name__ == "__main__":
+    import sys
+    sys.path.append('./aima-python/')
+    import os
 
 from search import *
 
@@ -75,11 +74,18 @@ class ASARProblem(Problem):
             plane['initial'] = action['leg']['from']
             plane['ready'] = self.airports[action['leg']['from']]['open']
 
-        plane['legs'].append(action['leg'])
-        plane['current'] = action['leg']['to']
-        plane['ready'] += action['leg']['duration'] + plane['rolltime']
+        leg = action['leg']
+        legs.remove(leg)
 
-        legs.remove(action['leg'])
+        if plane['ready'] + action['leg']['duration'] < self.airports[action['leg']['to']]['open']:
+            leg['dep'] = self.airports[action['leg']['to']]['open'] - action['leg']['duration']
+        else:
+            leg['dep'] = plane['ready']
+
+        plane['current'] = action['leg']['to']
+        plane['ready'] = leg['dep'] + action['leg']['duration'] + plane['rolltime']
+
+        plane['legs'].append(leg)
 
         return state
 
@@ -176,10 +182,8 @@ class ASARProblem(Problem):
             if p['initial'] is None:
                 continue
             
-            dep = self.airports[p['initial']]['open']
             for l in p['legs']:
-                line += ' ' + to_time(dep)  +  ' ' + l['from'] + ' ' + l['to']
-                dep += l['duration'] + p['rolltime']
+                line += ' ' + to_time(l['dep'])  +  ' ' + l['from'] + ' ' + l['to']
                 profit+=l[p['class']]
             f.write(line + '\n')
         
@@ -188,14 +192,20 @@ class ASARProblem(Problem):
 
 if __name__ == "__main__":
 
-    fp_in = open('examples/simple8.txt','r')
-    fp_out = open('examples/simple8_solved.txt','w')
+    for i in range(1,9):
 
-    problem = ASARProblem()
-    problem.load(fp_in)
-    final_node = astar_search(problem,problem.heuristic)
+        try:
+            os.remove('examples/simple'+str(i)+'_solved.txt')
+        except:
+            pass
+        fp_in = open('examples/simple'+str(i)+'.txt','r')
+        fp_out = open('examples/simple'+str(i)+'_solved.txt','w')
 
-    if final_node is None:
-        problem.save(fp_out, None)
-    else:
-        problem.save(fp_out, final_node.state)
+        problem = ASARProblem()
+        problem.load(fp_in)
+        final_node = astar_search(problem,problem.heuristic)
+
+        if final_node is None:
+            problem.save(fp_out, None)
+        else:
+            problem.save(fp_out, final_node.state)
