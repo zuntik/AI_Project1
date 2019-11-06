@@ -50,7 +50,7 @@ class ASARProblem(Problem):
                 actions += [{'name':pname,'leg':deepcopy(leg)} for leg in state.legs]
             else:
                 for leg in state.legs:
-                    if leg['from'] == p['current'] and p['ready'] + leg['duration'] <= self.airports[leg['to']]['close']:
+                    if leg['from'] == p['current'] and p['ready'] + leg['duration'] <= self.airports[leg['to']]['close'] and p['ready'] < self.airports[leg['from']]['close']:
                         actions.append({'name':pname,'leg':deepcopy(leg)})
         
         return actions
@@ -81,11 +81,8 @@ class ASARProblem(Problem):
 
         
         leg['dep'] = plane['ready']
-
         plane['current'] = leg['to']
-
         plane['legs'].append(leg)
-
         plane['ready'] = leg['dep'] + leg['duration'] + plane['rolltime']
 
         return state
@@ -194,7 +191,7 @@ class ASARProblem(Problem):
 
 if __name__ == "__main__":
 
-    for i in range(8,9):
+    for i in range(1,9):
 
         try:
             os.remove('examples/simple'+str(i)+'_solved.txt')
