@@ -50,7 +50,9 @@ class ASARProblem(Problem):
                 actions += [{'name':pname,'leg':leg} for leg in state.legs]
             else:
                 for leg in state.legs:
-                    if leg['from'] == p['current'] and p['ready'] + leg['duration'] <= self.airports[leg['to']]['close'] and p['ready'] < self.airports[leg['from']]['close']:
+                    if leg['from'] == p['current'] and\
+                            p['ready'] + leg['duration'] <= self.airports[leg['to']]['close'] and\
+                            p['ready'] < self.airports[leg['from']]['close']:
                         actions.append({'name':pname,'leg':deepcopy(leg)})
         
         return actions
@@ -97,7 +99,8 @@ class ASARProblem(Problem):
         """Return the cost of a solution path that arrives at state2 from
         state1 via action, assuming cost c to get up to state1."""
         # the step cost is the difference between the ideal profit and the actual profit
-        return c + max( [ action['leg'][c] for c in self.classes ] ) - action['leg'][state1.planes[action['name']]['class']]
+        return c + max( [ action['leg'][c] for c in self.classes ] )\
+                - action['leg'][state1.planes[action['name']]['class']]
 
     def heuristic(self, n):
         """Return the heuristic of node n"""
