@@ -40,22 +40,19 @@ class ASARProblem(Problem):
     def actions(self, state):
         """Return the actions that can be executed in the given state."""
         
-        # TODO Yielder!
-        actions = list()
-
         for pname,p in state.planes.items():
             # pname is the name of the current name
 
             if p['current'] is None:
-                actions += [{'name':pname,'leg':leg} for leg in state.legs]
+                for leg in state.legs:
+                    yield {'name':pname,'leg':leg}
+
             else:
                 for leg in state.legs:
                     if leg['from'] == p['current'] and\
                             p['ready'] + leg['duration'] <= self.airports[leg['to']]['close'] and\
                             p['ready'] < self.airports[leg['from']]['close']:
-                        actions.append({'name':pname,'leg':deepcopy(leg)})
-        
-        return actions
+                        yield {'name':pname,'leg':deepcopy(leg)}
 
 
     def result(self, state, action):
