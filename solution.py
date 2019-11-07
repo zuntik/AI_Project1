@@ -47,7 +47,7 @@ class ASARProblem(Problem):
             # pname is the name of the current name
 
             if p['current'] is None:
-                actions += [{'name':pname,'leg':deepcopy(leg)} for leg in state.legs]
+                actions += [{'name':pname,'leg':leg} for leg in state.legs]
             else:
                 for leg in state.legs:
                     if leg['from'] == p['current'] and p['ready'] + leg['duration'] <= self.airports[leg['to']]['close'] and p['ready'] < self.airports[leg['from']]['close']:
