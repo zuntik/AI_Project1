@@ -60,7 +60,7 @@ class ASARProblem(Problem):
         given state. The action must be one of self.actions(state)."""
 
         # the values are stored in the correct order
-        state = ASARProblem.State(deepcopy(state.legs),deepcopy(state.planes))
+        state = deepcopy(state)
         planes = state.planes
         legs = state.legs
 
