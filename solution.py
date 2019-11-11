@@ -96,12 +96,12 @@ class ASARProblem(Problem):
         """Return the cost of a solution path that arrives at state2 from
         state1 via action, assuming cost c to get up to state1."""
         # the step cost is the difference between the ideal profit and the actual profit
-        return c + max( [ action['leg'][c] for c in self.classes ] )\
+        return c + self.const + max( [ action['leg'][c] for c in self.classes ] )\
                 - action['leg'][state1.planes[action['name']]['class']]
 
     def heuristic(self, n):
         """Return the heuristic of node n"""
-        return 0
+        return len(n.state.legs) * self.const - self.const
 
     h = heuristic
 
@@ -137,6 +137,8 @@ class ASARProblem(Problem):
                 l[s[i]] = int(s[i+1])
             return l
         legs = [ Leg(s) for s in L ]
+
+        self.const = max( leg[c]   for leg in legs for c in classes )
 
         def Plane(s, c):
             return {
